@@ -216,14 +216,10 @@ The role checks are implemented through a custom `role_required` decorator and c
 
 ## Important Notes
 
-### Hardcoded database paths
-The codebase contains several hardcoded SQLite paths to a folder layout that may not match this repository exactly. A few examples include paths such as:
+### Database paths
+The project now uses portable file paths relative to the application directory, so the database location is resolved consistently regardless of the working directory.
 
-- `greenwells_operations/instance/shopfleet.db`
-- `../greenwells-operations/greenwells_operations/instance/shopfleet.db`
-- `../../greenwells_operations/instance/shopfleet.db`
-
-If the database does not load, make sure to align those paths with your working directory and actual database file location.
+If the database does not load, confirm that the file exists in `petrohub_station/instance/shopfleet.db` or update the path in the app configuration.
 
 ### Current development status
 This project appears to be an internal/business application prototype rather than a polished production-ready SaaS app. It includes custom logic for a specific domain workflow and may require a bit of cleanup if it is being re-used in a new environment.
@@ -232,7 +228,7 @@ This project appears to be an internal/business application prototype rather tha
 The codebase includes email OTP login behavior and a hardcoded secret key in `petrohub_station/app.py`:
 
 ```python
-app.config['SECRET_KEY'] = 'greenwells_secret'
+app.config['SECRET_KEY'] = 'petrohub_secret'
 ```
 
 This is acceptable for local development, but it should be replaced with an environment variable or secure secret in production.

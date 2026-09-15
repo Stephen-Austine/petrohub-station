@@ -1,10 +1,12 @@
+import os
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 import sqlite3
 
 employees_bp = Blueprint("employees", __name__, template_folder="../fleet_extend/employees")
 
-DB_PATH = "../greenwells-operations/greenwells_operations/instance/shopfleet.db"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_PATH = os.path.join(BASE_DIR, 'instance', 'shopfleet.db')
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)

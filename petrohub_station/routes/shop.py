@@ -1,3 +1,4 @@
+import os
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_required, current_user
 import sqlite3
@@ -5,12 +6,13 @@ from flask_wtf import FlaskForm
 from wtforms import IntegerField, StringField, SubmitField, SelectField
 from wtforms.validators import DataRequired, NumberRange
 from datetime import datetime
-import os
 
 shop = Blueprint("shop", __name__, template_folder="../templates/shop")
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # Database path
-shopfleetdb = '../greenwells-operations/greenwells_operations/instance/shopfleet.db'
+shopfleetdb = os.path.join(BASE_DIR, 'instance', 'shopfleet.db')
 
 def get_db_connection():
     conn = sqlite3.connect(shopfleetdb)

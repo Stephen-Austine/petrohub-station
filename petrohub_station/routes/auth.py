@@ -1,4 +1,5 @@
 # routes/auth.py
+import os
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, logout_user, login_required, current_user
 import sqlite3
@@ -11,9 +12,10 @@ import threading
 import time
 import base64
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # Define the database path
-#shopfleetdb = '../greenwells-operations/greenwells_operations/instance/shopfleet.db'
-shopfleetdb = '../../greenwells_operations/instance/shopfleet.db'
+shopfleetdb = os.path.join(BASE_DIR, 'instance', 'shopfleet.db')
 
 # ✅ Define the blueprint here (no circular import)
 auth_bp = Blueprint("auth", __name__, template_folder="../templates/auth")

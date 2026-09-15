@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_required, current_user
 import sqlite3
@@ -5,6 +6,8 @@ from user_object import UserObject
 from routes import register_blueprints  # ✅ auto-blueprint loader
 from functools import wraps
 from routes.gasrefill import gasrefill_bp
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Add the role_required decorator
 def role_required(allowed_roles):
@@ -53,11 +56,10 @@ def role_required(allowed_roles):
 
 # Initialize app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'greenwells_secret'
+app.config['SECRET_KEY'] = 'petrohub_secret'
 
-# Path to your actual SQLite database
-shopfleetdb = 'greenwells_operations/instance/shopfleet.db'
-#shopfleetdb = '../greenwells-operations/greenwells_operations/instance/shopfleet.db'
+# Path to the SQLite database
+shopfleetdb = os.path.join(BASE_DIR, 'instance', 'shopfleet.db')
 
 # Flask-Login setup
 login_manager = LoginManager(app)
@@ -786,7 +788,7 @@ import datetime
 from werkzeug.utils import secure_filename
 
 # Add configuration for file uploads
-UPLOAD_FOLDER = '../greenwells-operations/greenwells_operations/static/uploads'
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 MAX_FILE_SIZE = 16 * 1024 * 1024  # 16MB max file size
 

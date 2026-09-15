@@ -1,14 +1,17 @@
 # routes/gasrefill.py
+import os
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 import sqlite3
 from datetime import datetime
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # ✅ Only import what you use — no unused imports
 gasrefill_bp = Blueprint("gasrefill", __name__, template_folder="../templates/gasrefill")
 
 # ✅ Use your existing DB path
-DB_PATH = '../greenwells-operations/greenwells_operations/instance/shopfleet.db'
+DB_PATH = os.path.join(BASE_DIR, 'instance', 'shopfleet.db')
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
