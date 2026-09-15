@@ -1,0 +1,138 @@
+/* 🌟 Glassmorphism base */
+.glass-card {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Hover effect for cards */
+.glass-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(31, 38, 135, 0.3);
+}
+
+/* 🌟 Glass buttons (categories etc.) */
+.btn-glass {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #198754; /* Bootstrap green */
+  border-radius: 30px;
+  padding: 8px 18px;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-glass:hover,
+.btn-glass.active {
+  background: rgba(25, 135, 84, 0.8); /* Green highlight */
+  color: white;
+  border-color: rgba(25, 135, 84, 0.9);
+}
+
+/* Sidebar nav links */
+.nav-link {
+  border-radius: 8px;
+  padding: 10px 12px;
+  transition: background 0.2s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  background: rgba(25, 135, 84, 0.15);
+  color: #198754;
+  font-weight: 600;
+}
+
+/* Search bar */
+input.form-control {
+  border-radius: 25px;
+  border: 1px solid rgba(200, 200, 200, 0.4);
+  padding: 10px 15px;
+}
+
+input.form-control:focus {
+  border-color: #198754;
+  box-shadow: 0 0 5px rgba(25, 135, 84, 0.4);
+}
+
+/* Cart list items */
+.list-group-item {
+  background: rgba(255, 255, 255, 0.3);
+  border: none;
+}
+
+/* Place Order button */
+.btn-order {
+  background: linear-gradient(135deg, #198754, #20c997);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 10px;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-order:hover {
+  background: linear-gradient(135deg, #157347, #198754);
+  transform: translateY(-2px);
+}
+
+/*sign up/log in pages*/
+
+/* Form container */
+.glass-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Input field focus */
+.form-control:focus {
+  border-color: #198754;
+  box-shadow: 0 0 5px rgba(25, 135, 84, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Error messages */
+.text-danger {
+  font-size: 0.85rem;
+  color: #dc3545;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .glass-card {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+}
+/* Table styling for employee list */
+.table-hover tbody tr:hover {
+  background: rgba(25, 135, 84, 0.1);
+}
+
+/* Form select styling */
+.form-select {
+  border-radius: 25px;
+  border: 1px solid rgba(200, 200, 200, 0.4);
+  padding: 10px;
+}
+
+.form-select:focus {
+  border-color: #198754;
+  box-shadow: 0 0 5px rgba(25, 135, 84, 0.4);
+}
+
+/* Responsive table adjustments */
+@media (max-width: 768px) {
+  .table {
+    font-size: 0.9rem;
+  }
+  .glass-card {
+    padding: 1.5rem;
+  }
+}

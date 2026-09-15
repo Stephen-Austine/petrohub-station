@@ -1,0 +1,112 @@
+{% extends "base2.html" %}
+{% block content %}
+<div class="container mt-5">
+  <div class="glass-card p-4 mx-auto" style="max-width: 500px;">
+    <h2 class="mb-4 text-center">Create Your Account</h2>
+
+    <div class="alert alert-info mb-4">
+      <small>
+        <strong>Allowed Email Domains:</strong><br>
+        <strong>General:</strong> gmail.com, yahoo.com, outlook.com, hotmail.com, live.com, aol.com, icloud.com, mail.com, protonmail.com, zoho.com<br>
+        <strong>Official:</strong> company.com, business.com, organization.com, enterprise.com, corporate.com, firm.com, institution.com, agency.com<br>
+        <strong>Regional:</strong> gmail.co.ke, yahoo.co.ke, outlook.co.ke, hotmail.co.ke, and more...
+      </small>
+    </div>
+
+    <form method="POST" novalidate id="signup-form">
+      {{ form.hidden_tag() }}
+
+      <div class="mb-3">
+        {{ form.fname.label(class="form-label") }}
+        {{ form.fname(class="form-control", placeholder="Enter first name", required=True, autocomplete="given-name") }}
+        {% if form.fname.errors %}
+          <div class="text-danger small mt-1">
+            {% for error in form.fname.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.lname.label(class="form-label") }}
+        {{ form.lname(class="form-control", placeholder="Enter last name", required=True, autocomplete="family-name") }}
+        {% if form.lname.errors %}
+          <div class="text-danger small mt-1">
+            {% for error in form.lname.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.email.label(class="form-label") }}
+        {{ form.email(class="form-control", placeholder="Enter your email", required=True, type="email", autocomplete="email") }}
+        {% if form.email.errors %}
+          <div class="text-danger small mt-1">
+            {% for error in form.email.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.phone.label(class="form-label") }}
+        {{ form.phone(class="form-control", placeholder="e.g. +254712345678", required=True, type="tel", autocomplete="tel") }}
+        {% if form.phone.errors %}
+          <div class="text-danger small mt-1">
+            {% for error in form.phone.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.password.label(class="form-label") }}
+        {{ form.password(class="form-control", placeholder="Create a password", required=True, type="password", autocomplete="new-password") }}
+        {% if form.password.errors %}
+          <div class="text-danger small mt-1">
+            {% for error in form.password.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.confirm_password.label(class="form-label") }}
+        {{ form.confirm_password(class="form-control", placeholder="Confirm your password", required=True, type="password", autocomplete="new-password") }}
+        {% if form.confirm_password.errors %}
+          <div class="text-danger small mt-1">
+            {% for error in form.confirm_password.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="btn btn-glass btn-order w-100">Sign Up</button>
+    </form>
+
+    <p class="mt-3 text-center">
+      Already have an account?
+      <a href="{{ url_for('auth.login') }}">Login here</a>
+    </p>
+  </div>
+</div>
+
+<script>
+  // Client-side password match validation
+  document.getElementById('signup-form').addEventListener('submit', function (e) {
+    const password = document.querySelector('#password').value;
+    const confirmPassword = document.querySelector('#confirm_password').value;
+    if (password !== confirmPassword) {
+      e.preventDefault();
+      alert('Passwords do not match!');
+    }
+  });
+</script>
+{% endblock %}

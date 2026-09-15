@@ -1,0 +1,90 @@
+{% extends "base2.html" %}
+{% block content %}
+<div class="container">
+    <h2>Bulk Product Orders</h2>
+    <p>Place large quantity orders for delivery. Perfect for businesses requiring regular bulk supplies.</p>
+
+    <form method="POST">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="product_category" class="form-label">Product Category</label>
+                <select name="product_category" id="product_category" class="form-select" required onchange="updateProductTypes()">
+                    <option value="">Select Product Category</option>
+                    <option value="Fuel">Fuel</option>
+                    <option value="Gas">Gas</option>
+                    <option value="Oil">Oil</option>
+                    <option value="Chemicals">Chemicals</option>
+                </select>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="product_type" class="form-label">Product Type</label>
+                <select name="product_type" id="product_type" class="form-select" required>
+                    <option value="">Select Product Type</option>
+                    <!-- Options will be populated by JavaScript -->
+                </select>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="quantity_requested" class="form-label">Quantity Required</label>
+                <input type="number" name="quantity_requested" id="quantity_requested" class="form-control" min="10" max="10000" required>
+                <small class="form-text text-muted">Minimum 10 units (liters, kg, etc.)</small>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="delivery_address" class="form-label">Delivery Address</label>
+                <input type="text" name="delivery_address" id="delivery_address" class="form-control" placeholder="Enter full delivery address" required>
+                <small class="form-text text-muted">Where should we deliver the products?</small>
+            </div>
+        </div>
+        
+        <div class="card bg-light mb-3">
+            <div class="card-body">
+                <h6>Order Details:</h6>
+                <ul class="mb-0">
+                    <li><strong>Order Status:</strong> Pending</li>
+                    <li><strong>Delivery:</strong> Scheduled after confirmation</li>
+                    <li><strong>Payment:</strong> Upon delivery or as per agreement</li>
+                </ul>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-success">Place Bulk Order</button>
+        <a href="{{ url_for('my_bulk_orders') }}" class="btn btn-secondary">View My Bulk Orders</a>
+    </form>
+</div>
+
+<script>
+function updateProductTypes() {
+    const categorySelect = document.getElementById('product_category');
+    const typeSelect = document.getElementById('product_type');
+    const selectedCategory = categorySelect.value;
+    
+    // Clear existing options
+    typeSelect.innerHTML = '<option value="">Select Product Type</option>';
+    
+    // Define product types for each category
+    const productTypes = {
+        'Fuel': ['Unleaded Premium', 'Low Sulphur Diesel', 'Kerosine'],
+        'Gas': ['6kg Gas Cylinder', '12kg Gas Cylinder', '18kg Gas Cylinder'],
+        'Oil': ['Engine Oil 2kg', 'Engine Oil 5kg', 'Premium Oil']
+    };
+    
+    if (selectedCategory && productTypes[selectedCategory]) {
+        productTypes[selectedCategory].forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            typeSelect.appendChild(option);
+        });
+    }
+}
+
+// Update product types when page loads (in case of validation errors)
+document.addEventListener('DOMContentLoaded', function() {
+    updateProductTypes();
+});
+</script>
+{% endblock %}

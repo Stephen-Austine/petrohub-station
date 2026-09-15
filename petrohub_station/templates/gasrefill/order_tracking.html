@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gas Refill Tracking</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+  <style>
+    .step { text-align: center; position: relative; flex: 1; }
+    .step .circle { width: 30px; height: 30px; border-radius: 50%; margin: auto; background: #ccc; line-height: 30px; color: #fff; }
+    .step.active .circle { background: #198754; }
+    .step::after { content: ''; position: absolute; top: 15px; left: 50%; height: 3px; width: 100%; background: #ccc; z-index: -1; }
+    .step:last-child::after { display: none; }
+    .steps { display: flex; justify-content: space-between; margin: 30px 0; }
+  </style>
+</head>
+<body class="container mt-4">
+  <h3 class="fw-bold mb-3">Gas Refill Order #{{ order['order_id'] }} Tracking</h3>
+  <p><strong>Cylinder:</strong> {{ order['cylinder_type'] }} ({{ order['size_kg'] }})</p>
+  <p><strong>Location:</strong> {{ order['location'] }}</p>
+  {% if order['instructions'] %}<p><strong>Instructions:</strong> {{ order['instructions'] }}</p>{% endif %}
+
+  <div class="steps">
+    {% for step in steps %}
+    <div class="step {% if step.active %}active{% endif %}">
+      <div class="circle">{{ loop.index }}</div>
+      <p>{{ step.label }}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <a href="{{ url_for('shop.shop_home') }}" class="btn btn-outline-secondary">← Back to Shop</a>
+</body>
+</html>

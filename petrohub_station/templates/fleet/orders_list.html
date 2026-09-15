@@ -1,0 +1,53 @@
+{% extends "base2.html" %}
+{% block content %}
+<div class="container">
+    <h2>My Fleet Orders</h2>
+    
+    {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Cargo Type</th>
+                        <th>Quantity</th>
+                        <th>Destination</th>
+                        <th>Start Date</th>
+                        <th>Expected Return</th>
+                        <th>Status</th>
+                        <th>Duration</th>
+                        <th>Ordered On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>#{{ order.fleetorder_id }}</td>
+                        <td>{{ order.cargo_type }}</td>
+                        <td>{{ order.quantity }}</td>
+                        <td>{{ order.destination }}</td>
+                        <td>{{ order.start_date }}</td>
+                        <td>{{ order.expected_return_date }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if order.status == 'Completed' %}bg-success
+                                {% elif order.status == 'In Transit' %}bg-info
+                                {% elif order.status == 'Assigned' %}bg-warning
+                                {% else %}bg-secondary{% endif %}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td>{{ order.duration_days }} days</td>
+                        <td>{{ order.order_timestamp|datetime }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>No fleet orders found.</p>
+    {% endif %}
+    
+    <a href="{{ url_for('fleet.fleet_home') }}" class="btn btn-primary">New Fleet Request</a>
+</div>
+{% endblock %}

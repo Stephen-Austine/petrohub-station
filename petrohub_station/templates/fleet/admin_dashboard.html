@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Fleet Management Dashboard</h2>
+
+<h4>Fleet Assets</h4>
+<ul>
+  {% for f in fleets %}
+    <li>{{ f.name }} ({{ f.reg_no }}) — {{ f.status }}</li>
+  {% else %}
+    <li>No fleet assets yet.</li>
+  {% endfor %}
+</ul>
+
+<h4 class="mt-4">Customer Fleet Requests</h4>
+<table class="table">
+  <thead>
+    <tr>
+      <th>ID</th><th>Customer ID</th><th>Vehicle Type</th><th>Qty</th><th>Destination</th><th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for o in orders %}
+      <tr>
+        <td>{{ o.id }}</td>
+        <td>{{ o.customer_id }}</td>
+        <td>{{ o.vehicle_type }}</td>
+        <td>{{ o.quantity }}</td>
+        <td>{{ o.destination }}</td>
+        <td>{{ o.status }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="6">No fleet orders yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

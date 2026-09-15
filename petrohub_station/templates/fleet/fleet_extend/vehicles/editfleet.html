@@ -1,0 +1,162 @@
+{% extends "adminside_fleet/adminlayout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Edit Fleet - {{ fleet['fleet_id'] }}</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Flash messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show flash-message" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" id="editVehicleForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="registration_number" class="form-label">Registration Number *</label>
+                                <input type="text" class="form-control" id="registration_number" name="registration_number" 
+                                       value="{{ fleet['registration_number'] }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="fleet_brand" class="form-label">Brand *</label>
+                                <input type="text" class="form-control" id="fleet_brand" name="fleet_brand" 
+                                       value="{{ fleet['fleet_brand'] }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="fleet_model" class="form-label">Model *</label>
+                                <input type="text" class="form-control" id="fleet_model" name="fleet_model" 
+                                       value="{{ fleet['fleet_model'] }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="fleet_category" class="form-label">Category *</label>
+                                <select class="form-select" id="fleet_category" name="fleet_category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Truck" {% if fleet['fleet_category'] == 'Truck' %}selected{% endif %}>Truck</option>
+                                    <option value="Van" {% if fleet['fleet_category'] == 'Van' %}selected{% endif %}>Van</option>
+                                    <option value="Car" {% if fleet['fleet_category'] == 'Car' %}selected{% endif %}>Car</option>
+                                    <option value="Motorcycle" {% if fleet['fleet_category'] == 'Motorcycle' %}selected{% endif %}>Motorcycle</option>
+                                    <option value="Trailer" {% if fleet['fleet_category'] == 'Trailer' %}selected{% endif %}>Trailer</option>
+                                    <option value="Tanker" {% if fleet['fleet_category'] == 'Tanker' %}selected{% endif %}>Tanker</option>
+                                    <option value="Flatbed" {% if fleet['fleet_category'] == 'Flatbed' %}selected{% endif %}>Flatbed</option>
+                                    <option value="Refrigerated" {% if fleet['fleet_category'] == 'Refrigerated' %}selected{% endif %}>Refrigerated</option>
+                                    <option value="Other" {% if fleet['fleet_category'] == 'Other' %}selected{% endif %}>Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="registration_date" class="form-label">Registration Date *</label>
+                                <input type="date" class="form-control" id="registration_date" name="registration_date" 
+                                       value="{{ fleet['registration_date'] }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="fleet_mileage" class="form-label">Current Mileage *</label>
+                                <input type="number" class="form-control" id="fleet_mileage" name="fleet_mileage" 
+                                       value="{{ fleet['fleet_mileage'] }}" required min="0">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="chassis_number" class="form-label">Chassis Number *</label>
+                                <input type="text" class="form-control" id="chassis_number" name="chassis_number" 
+                                       value="{{ fleet['chassis_number'] }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="cargo_type" class="form-label">Cargo Type *</label>
+                                <select class="form-select" id="cargo_type" name="cargo_type" required>
+                                    <option value="">Select Cargo Type</option>
+                                    <option value="Gas" {% if fleet['cargo_type'] == 'Gas' %}selected{% endif %}>Gas</option>
+                                    <option value="Oil" {% if fleet['cargo_type'] == 'Oil' %}selected{% endif %}>Oil</option>
+                                    <option value="Loading Cargo" {% if fleet['cargo_type'] == 'Loading Cargo' %}selected{% endif %}>Loading Cargo</option>
+                                    <option value="General Freight" {% if fleet['cargo_type'] == 'General Freight' %}selected{% endif %}>General Freight</option>
+                                    <option value="Hazardous Materials" {% if fleet['cargo_type'] == 'Hazardous Materials' %}selected{% endif %}>Hazardous Materials</option>
+                                    <option value="Refrigerated Goods" {% if fleet['cargo_type'] == 'Refrigerated Goods' %}selected{% endif %}>Refrigerated Goods</option>
+                                    <option value="Livestock" {% if fleet['cargo_type'] == 'Livestock' %}selected{% endif %}>Livestock</option>
+                                    <option value="Other" {% if fleet['cargo_type'] == 'Other' %}selected{% endif %}>Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="max_capacity" class="form-label">Max Capacity (kg) *</label>
+                                <input type="number" class="form-control" id="max_capacity" name="max_capacity" 
+                                       value="{{ fleet['max_capacity'] }}" required min="1">
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            <strong>Note:</strong> After editing, you will be automatically assigned as the driver and the status will be set to "Assigned".
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('vehiclesmanagefleet') }}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-edit"></i> Update Fleet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Auto-dismiss flash messages after 3 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const flashMessages = document.querySelectorAll('.flash-message');
+        flashMessages.forEach(function(flash) {
+            setTimeout(function() {
+                const alert = bootstrap.Alert.getOrCreateInstance(flash);
+                alert.close();
+            }, 3000);
+        });
+    });
+
+    // Form validation
+    document.getElementById('editVehicleForm').addEventListener('submit', function(e) {
+        const regNumber = document.getElementById('registration_number').value;
+        const mileage = document.getElementById('fleet_mileage').value;
+        const capacity = document.getElementById('max_capacity').value;
+        
+        if (!regNumber.trim()) {
+            e.preventDefault();
+            alert('Please enter a registration number');
+            return;
+        }
+        
+        if (mileage < 0) {
+            e.preventDefault();
+            alert('Mileage cannot be negative');
+            return;
+        }
+        
+        if (capacity <= 0) {
+            e.preventDefault();
+            alert('Capacity must be greater than 0');
+            return;
+        }
+    });
+</script>
+{% endblock %}

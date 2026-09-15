@@ -1,0 +1,431 @@
+{% extends "adminside_fleet/adminlayout.html" %}
+
+{% block content %}
+
+<div class="container">
+  <h3>Manage Bulk Orders</h3>
+  
+  <!-- Search Bar -->
+  <div class="row mb-3">
+    <div class="col-md-12">
+      <div class="input-group">
+        <span class="input-group-text" id="search-icon">
+          <i class="fas fa-search"></i>
+        </span>
+        <input type="text" class="form-control" id="orderSearch" placeholder="Search by ID, Customer, Status..." aria-label="Search bulk orders" aria-describedby="search-icon">
+      </div>
+    </div>
+  </div>
+  
+  <!-- Status Navbar -->
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+      <a class="nav-link {% if not current_filter %}active{% endif %}" href="{{ url_for('bulk_orders_manage') }}" style="color: green;">
+        All Orders 
+        <span class="badge bg-success">{{ total_orders }}</span>
+      </a>
+    </li>
+    {% for status_row in status_counts %}
+      <li class="nav-item">
+        <a class="nav-link {% if current_filter == status_row['status'] %}active{% endif %}" 
+           href="{{ url_for('bulk_orders_manage', status=status_row['status']) }}" style="color: green;">
+          {{ status_row['status'] }} <span class="badge bg-secondary">{{ status_row['count'] }}</span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show flash-message" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="card">
+    <div class="card-body">
+      {% if orders %}
+        <div id="orderList">
+          {% for order in orders %}
+            <div class="card mt-2 order-item" 
+                 data-id="{{ order['bulkorder_id'] }}" 
+                 data-customer="{{ order['customer_first_name'] }} {{ order['customer_last_name'] }}" 
+                 data-status="{{ order['status'] }}">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="row w-100">
+                    <!-- Order Info Columns -->
+                    <div class="col-md-2">
+                      <p class="mb-1"><strong>Order ID:</strong> {{ order['bulkorder_id'] }}</p>
+                      <p class="mb-1"><strong>Customer:</strong> {{ order['customer_first_name'] }} {{ order['customer_last_name'] }}</p>
+                    </div>
+                    <div class="col-md-3">
+                      <p class="mb-1"><strong>Product Category:</strong> {{ order['product_category'] }}</p>
+                      <p class="mb-1"><strong>Product Type:</strong> {{ order['product_type'] }}</p>
+                    </div>
+                    <div class="col-md-3">
+                      <p class="mb-1"><strong>Quantity:</strong> {{ order['quantity_requested'] }}</p>
+                      <p class="mb-1"><strong>Delivery Address:</strong> {{ order['delivery_address'] }}</p>
+                    </div>
+                    <div class="col-md-2">
+                      <p class="mb-1"><strong>Status:</strong></p>
+                      <span class="badge bg-{% if order['status'] == 'Delivered' %}success{% elif order['status'] == 'Cancelled' %}danger{% elif order['status'] == 'In Transit' %}info{% elif order['status'] == 'Confirmed' %}success{% elif order['status'] == 'Pending' %}secondary{% else %}secondary{% endif %}">
+                        {{ order['status'] }}
+                      </span>
+                    </div>
+                    <div class="col-md-2 text-end">
+                      <!-- More Info Button -->
+                      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#orderModal{{ order['bulkorder_id'] }}">
+                        More Info
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bulk Order Modal -->
+            <div class="modal fade" id="orderModal{{ order['bulkorder_id'] }}" tabindex="-1" aria-labelledby="orderModalLabel{{ order['bulkorder_id'] }}" aria-hidden="true">
+              <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="orderModalLabel{{ order['bulkorder_id'] }}">Bulk Order Details - ID: {{ order['bulkorder_id'] }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <p><strong>Order ID:</strong> {{ order['bulkorder_id'] }}</p>
+                        <p><strong>Customer:</strong> {{ order['customer_first_name'] }} {{ order['customer_last_name'] }}</p>
+                        <p><strong>Customer Email:</strong> {{ order['customer_email'] }}</p>
+                        <p><strong>Customer Phone:</strong> {{ order['customer_phone'] }}</p>
+                        <p><strong>Customer Location:</strong> {{ order['customer_location'] }}</p>
+                        <p><strong>Product Category:</strong> {{ order['product_category'] }}</p>
+                        <p><strong>Product Type:</strong> {{ order['product_type'] }}</p>
+                        <p><strong>Quantity Requested:</strong> {{ order['quantity_requested'] }}</p>
+                        <p><strong>Delivery Address:</strong> {{ order['delivery_address'] }}</p>
+                        <p><strong>Total Cost:</strong> KES {{ order['total_cost'] }}</p>
+                        <p><strong>Fleet:</strong> {{ order['fleet_registration'] or 'Not Assigned' }}</p>
+                        <p><strong>Order Timestamp:</strong> {{ order['order_timestamp']|datetime }}</p>
+                        <p><strong>Status:</strong> 
+                          <span class="badge bg-{% if order['status'] == 'Delivered' %}success{% elif order['status'] == 'Cancelled' %}danger{% elif order['status'] == 'In Transit' %}info{% elif order['status'] == 'Confirmed' %}success{% elif order['status'] == 'Pending' %}secondary{% else %}secondary{% endif %}">
+                            {{ order['status'] }}
+                          </span>
+                        </p>
+                        
+                        <!-- Fleet Assignment Form -->
+                        <hr>
+                        <h6><strong>Assign Fleet Vehicle:</strong></h6>
+                        <form method="POST">
+                          <input type="hidden" name="bulkorder_id" value="{{ order['bulkorder_id'] }}">
+                          <input type="hidden" name="action" value="fleet">
+                          <div class="mb-3">
+                            <label for="fleetSelect{{ order['bulkorder_id'] }}" class="form-label">Select Fleet Vehicle:</label>
+                            <select class="form-select" id="fleetSelect{{ order['bulkorder_id'] }}" name="fleet_id">
+                              <option value="">-- Select Fleet --</option>
+                              {% for fleet in fleets %}
+                                <option value="{{ fleet['fleet_id'] }}" 
+                                        {% if fleet['fleet_id'] == order['fleet_id'] %}selected{% endif %}>
+                                  {{ fleet['registration_number'] }} - {{ fleet['fleet_brand'] }} {{ fleet['fleet_model'] }} 
+                                  ({{ fleet['first_name'] }} {{ fleet['last_name'] }})
+                                </option>
+                              {% endfor %}
+                            </select>
+                          </div>
+                          <button type="submit" class="btn btn-success">Assign Fleet</button>
+                        </form>
+                      </div>
+                      <div class="col-md-6">
+                        <!-- Bulk Order Details -->
+                        <hr>
+                        <h6><strong>Order Information:</strong></h6>
+                        <p><strong>Customer ID:</strong> {{ order['user_id'] }}</p>
+                        <p><strong>Product Category:</strong> {{ order['product_category'] }}</p>
+                        <p><strong>Product Type:</strong> {{ order['product_type'] }}</p>
+                        <p><strong>Quantity Requested:</strong> {{ order['quantity_requested'] }}</p>
+                        <p><strong>Delivery Address:</strong> {{ order['delivery_address'] }}</p>
+                        <p><strong>Total Cost:</strong> KES {{ order['total_cost'] }}</p>
+                        
+                        <!-- Status Change Form -->
+                        <hr>
+                        <h6><strong>Update Status:</strong></h6>
+                        <form method="POST">
+                          <input type="hidden" name="bulkorder_id" value="{{ order['bulkorder_id'] }}">
+                          <input type="hidden" name="action" value="status">
+                          <div class="mb-3">
+                            <label for="statusSelect{{ order['bulkorder_id'] }}" class="form-label">Change Status:</label>
+                            <select class="form-select" id="statusSelect{{ order['bulkorder_id'] }}" name="status">
+                              <option value="Pending" {% if order['status'] == 'Pending' %}selected{% endif %}>Pending</option>
+                              <option value="Confirmed" {% if order['status'] == 'Confirmed' %}selected{% endif %}>Confirmed</option>
+                              <option value="In Transit" {% if order['status'] == 'In Transit' %}selected{% endif %}>In Transit</option>
+                              <option value="Delivered" {% if order['status'] == 'Delivered' %}selected{% endif %}>Delivered</option>
+                              <option value="Cancelled" {% if order['status'] == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                          </div>
+                          <button type="submit" class="btn btn-success">Update Status</button>
+                        </form>
+                        
+                        <!-- Order Summary -->
+                        <hr>
+                        <h6><strong>Order Summary:</strong></h6>
+                        <p><strong>Product:</strong> {{ order['product_type'] }} ({{ order['product_category'] }})</p>
+                        <p><strong>Quantity:</strong> {{ order['quantity_requested'] }}</p>
+                        <p><strong>Cost:</strong> KES {{ order['total_cost'] }}</p>
+                        <p><strong>Delivery:</strong> {{ order['delivery_address'] }}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        
+        <!-- Improved Pagination Controls -->
+        <nav aria-label="Order pagination" class="mt-4">
+          <ul class="pagination justify-content-center" id="paginationControls">
+            <!-- Pagination will be generated by JavaScript -->
+          </ul>
+        </nav>
+        
+        <!-- No results message -->
+        <div id="noResults" class="text-center py-5 d-none">
+          <h5>No bulk orders found matching your search.</h5>
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <h5>No bulk orders found{% if current_filter %} with status "{{ current_filter }}"{% endif %}.</h5>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Font Awesome for search icon -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Auto-dismiss flash messages after 3 seconds
+  document.addEventListener('DOMContentLoaded', function() {
+    const flashMessages = document.querySelectorAll('.flash-message');
+    flashMessages.forEach(function(flash) {
+      setTimeout(function() {
+        const alert = bootstrap.Alert.getOrCreateInstance(flash);
+        alert.close();
+      }, 3000);
+    });
+    
+    // Search functionality
+    const searchInput = document.getElementById('orderSearch');
+    const orderItems = document.querySelectorAll('.order-item');
+    const noResults = document.getElementById('noResults');
+    
+    searchInput.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      let hasResults = false;
+      
+      orderItems.forEach(item => {
+        const id = item.dataset.id.toLowerCase();
+        const customer = item.dataset.customer.toLowerCase();
+        const status = item.dataset.status.toLowerCase();
+        
+        if (id.includes(searchTerm) || 
+            customer.includes(searchTerm) || 
+            status.includes(searchTerm)) {
+          item.style.display = '';
+          hasResults = true;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      
+      // Show/hide no results message
+      if (hasResults || searchTerm === '') {
+        noResults.classList.add('d-none');
+        initPagination(); // Reinitialize pagination after search
+      } else {
+        noResults.classList.remove('d-none');
+      }
+    });
+    
+    // Pagination functionality
+    const itemsPerPage = 4;
+    let currentPage = 1;
+    let filteredItems = Array.from(orderItems);
+    
+    function initPagination() {
+      // Get currently visible items
+      filteredItems = Array.from(orderItems).filter(item => item.style.display !== 'none');
+      
+      // Calculate total pages
+      const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+      
+      // Hide all items
+      orderItems.forEach(item => item.style.display = 'none');
+      
+      // Show items for current page
+      showPage(currentPage);
+      
+      // Generate pagination controls
+      generatePaginationControls(totalPages);
+    }
+    
+    function showPage(page) {
+      const startIndex = (page - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      
+      // Hide all items
+      filteredItems.forEach(item => item.style.display = 'none');
+      
+      // Show items for current page
+      filteredItems.slice(startIndex, endIndex).forEach(item => item.style.display = '');
+    }
+    
+    function generatePaginationControls(totalPages) {
+      const paginationControls = document.getElementById('paginationControls');
+      paginationControls.innerHTML = '';
+      
+      if (totalPages <= 1) return;
+      
+      // Maximum number of page buttons to show
+      const maxVisiblePages = 3;
+      
+      // Previous button
+      const prevLi = document.createElement('li');
+      prevLi.className = 'page-item' + (currentPage === 1 ? ' disabled' : '');
+      prevLi.innerHTML = `<a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                          </a>`;
+      if (currentPage > 1) {
+        prevLi.querySelector('a').addEventListener('click', function(e) {
+          e.preventDefault();
+          currentPage--;
+          showPage(currentPage);
+          generatePaginationControls(totalPages);
+        });
+      }
+      paginationControls.appendChild(prevLi);
+      
+      // First page button
+      if (totalPages > maxVisiblePages) {
+        const firstLi = document.createElement('li');
+        firstLi.className = 'page-item' + (currentPage === 1 ? ' active' : '');
+        firstLi.innerHTML = `<a class="page-link" href="#">1</a>`;
+        if (currentPage !== 1) {
+          firstLi.querySelector('a').addEventListener('click', function(e) {
+            e.preventDefault();
+            currentPage = 1;
+            showPage(currentPage);
+            generatePaginationControls(totalPages);
+          });
+        }
+        paginationControls.appendChild(firstLi);
+        
+        // Ellipsis if needed
+        if (currentPage > maxVisiblePages) {
+          const ellipsisLi = document.createElement('li');
+          ellipsisLi.className = 'page-item disabled';
+          ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+          paginationControls.appendChild(ellipsisLi);
+        }
+      }
+      
+      // Calculate start and end page numbers
+      let startPage, endPage;
+      if (totalPages <= maxVisiblePages) {
+        // Show all pages
+        startPage = 1;
+        endPage = totalPages;
+      } else {
+        // Calculate start and end pages based on current page
+        const halfVisible = Math.floor(maxVisiblePages / 2);
+        if (currentPage <= halfVisible) {
+          startPage = 1;
+          endPage = maxVisiblePages;
+        } else if (currentPage + halfVisible >= totalPages) {
+          startPage = totalPages - maxVisiblePages + 1;
+          endPage = totalPages;
+        } else {
+          startPage = currentPage - halfVisible;
+          endPage = currentPage + halfVisible;
+        }
+      }
+      
+      // Page numbers
+      for (let i = startPage; i <= endPage; i++) {
+        if (i === 1 && totalPages > maxVisiblePages) continue; // Skip first if already shown
+        if (i === totalPages && totalPages > maxVisiblePages) continue; // Skip last if already shown
+        
+        const li = document.createElement('li');
+        li.className = 'page-item' + (i === currentPage ? ' active' : '');
+        li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+        
+        if (i !== currentPage) {
+          li.querySelector('a').addEventListener('click', function(e) {
+            e.preventDefault();
+            currentPage = i;
+            showPage(currentPage);
+            generatePaginationControls(totalPages);
+          });
+        }
+        
+        paginationControls.appendChild(li);
+      }
+      
+      // Ellipsis and last page button if needed
+      if (totalPages > maxVisiblePages) {
+        // Ellipsis if needed
+        if (currentPage < totalPages - maxVisiblePages + 1) {
+          const ellipsisLi = document.createElement('li');
+          ellipsisLi.className = 'page-item disabled';
+          ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+          paginationControls.appendChild(ellipsisLi);
+        }
+        
+        // Last page button
+        const lastLi = document.createElement('li');
+        lastLi.className = 'page-item' + (currentPage === totalPages ? ' active' : '');
+        lastLi.innerHTML = `<a class="page-link" href="#">${totalPages}</a>`;
+        if (currentPage !== totalPages) {
+          lastLi.querySelector('a').addEventListener('click', function(e) {
+            e.preventDefault();
+            currentPage = totalPages;
+            showPage(currentPage);
+            generatePaginationControls(totalPages);
+          });
+        }
+        paginationControls.appendChild(lastLi);
+      }
+      
+      // Next button
+      const nextLi = document.createElement('li');
+      nextLi.className = 'page-item' + (currentPage === totalPages ? ' disabled' : '');
+      nextLi.innerHTML = `<a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                          </a>`;
+      if (currentPage < totalPages) {
+        nextLi.querySelector('a').addEventListener('click', function(e) {
+          e.preventDefault();
+          currentPage++;
+          showPage(currentPage);
+          generatePaginationControls(totalPages);
+        });
+      }
+      paginationControls.appendChild(nextLi);
+    }
+    
+    // Initialize pagination on page load
+    initPagination();
+  });
+</script>
+
+{% endblock %}

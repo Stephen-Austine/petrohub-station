@@ -1,0 +1,598 @@
+{% extends "adminside_fleet/adminlayout.html" %}
+
+{% block content %}
+
+<div class="container">
+  <h3>Manage Fleet</h3>
+  
+  <!-- Search and Add Button Row -->
+  <div class="row mb-3">
+    <div class="col-md-8">
+      <div class="input-group">
+        <span class="input-group-text" id="search-icon">
+          <i class="fas fa-search"></i>
+        </span>
+        <input type="text" class="form-control" id="fleetSearch" placeholder="Search by ID, Brand, Model, Category, or Status..." aria-label="Search fleets" aria-describedby="search-icon">
+      </div>
+    </div>
+    <div class="col-md-4">
+      <button class="btn btn-outline-success w-100" onclick="location.href = 'vehiclesaddnew'">
+        <i class="fas fa-plus-circle me-2"></i>Add Fleet Vehicles
+      </button>
+    </div>
+  </div>
+  
+  <!-- Status Navbar -->
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+      <a class="nav-link {% if not current_filter %}active{% endif %}" href="{{ url_for('vehiclesmanagefleet') }}" style="color: green;">
+        All Fleets 
+        <span class="badge bg-success">{{ total_fleets }}</span>
+      </a>
+    </li>
+    {% for status_row in status_counts %}
+      <li class="nav-item">
+        <a class="nav-link {% if current_filter == status_row['status'] %}active{% endif %}" style="color: green;"
+           href="{{ url_for('vehiclesmanagefleet', status=status_row['status']) }}">
+          {{ status_row['status'] }} <span class="badge bg-secondary">{{ status_row['count'] }}</span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show flash-message" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="card">
+    <div class="card-body">
+      {% if fleets %}
+        <div id="fleetList">
+          {% for fleet in fleets %}
+            <div class="card mt-2 fleet-item" 
+                 data-id="{{ fleet['fleet_id'] }}" 
+                 data-brand="{{ fleet['fleet_brand'] }}" 
+                 data-regno="{{ fleet['registration_number'] }}" 
+                 data-category="{{ fleet['fleet_category'] }}" 
+                 data-status="{{ fleet['status'] }}"
+                 data-cargo="{{ fleet['cargo_type'] }}">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="row w-100">
+                    <!-- Fleet Info Columns -->
+                    <div class="col-md-2">
+                      <p class="mb-1"><strong>ID:</strong> {{ fleet['fleet_id'] }}</p>
+                      <p class="mb-1"><strong>Reg no:</strong> {{ fleet['registration_number'] }}</p>
+                    </div>
+                    <div class="col-md-3">
+                      <p class="mb-1"><strong>Brand:</strong> {{ fleet['fleet_brand'] }}</p>
+                      <p class="mb-1"><strong>Category:</strong> {{ fleet['fleet_category'] }}</p>
+                    </div>
+                    <div class="col-md-2">
+                      <p class="mb-1"><strong>Cargo Type:</strong> {{ fleet['cargo_type'] }}</p>
+                      <p class="mb-1"><strong>Mileage:</strong> {{ fleet['fleet_mileage'] }}</p>
+                    </div>
+                    <div class="col-md-3">
+                      <p class="mb-1"><strong>Driver:</strong> 
+                        {% if fleet['employee_id'] and fleet['employee_id'] != '0' and fleet['driver_first_name'] and fleet['driver_last_name'] %}
+                          {{ fleet['driver_first_name'] }} {{ fleet['driver_last_name'] }}
+                        {% else %}
+                          <span class="text-muted">No Driver</span>
+                        {% endif %}
+                      </p>
+                      <p class="mb-1"><strong>Status:</strong> 
+                        <span class="badge bg-{% if fleet['status'] == 'Active' %}success{% elif fleet['status'] == 'In Service' %}success{% elif fleet['status'] == 'Decommissioned' %}danger{% elif fleet['status'] == 'Assigned' %}info{% elif fleet['status'] == 'Idle' %}primary{% elif fleet['status'] == 'Unassigned' %}warning{% else %}secondary{% endif %}">
+                          {{ fleet['status'] }}
+                        </span>
+                      </p>
+                    </div>
+                    <div class="col-md-2 text-end">
+                      <!-- More Info Button -->
+                      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#fleetModal{{ fleet['fleet_id'] }}">
+                        More Info
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Wider Modal -->
+            <div class="modal fade" id="fleetModal{{ fleet['fleet_id'] }}" tabindex="-1" aria-labelledby="fleetModalLabel{{ fleet['fleet_id'] }}" aria-hidden="true">
+              <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="fleetModalLabel{{ fleet['fleet_id'] }}">Fleet Details - ID: {{ fleet['fleet_id'] }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <p><strong>Fleet ID:</strong> {{ fleet['fleet_id'] }}</p>
+                        <p><strong>Registration Number:</strong> {{ fleet['registration_number'] }}</p>
+                        <p><strong>Brand:</strong> {{ fleet['fleet_brand'] }}</p>
+                        <p><strong>Model:</strong> {{ fleet['registration_number'] }}</p> <!-- Note: This seems to repeat reg number, maybe should be fleet_model? -->
+                        <p><strong>Category:</strong> {{ fleet['fleet_category'] }}</p>
+                        <p><strong>Registration Date:</strong> {{ fleet['registration_date'] }}</p>
+                        <p><strong>Mileage:</strong> {{ fleet['fleet_mileage'] }}</p>
+                                                <h6>Location Information</h6>
+                        <p id="locationText{{ fleet['fleet_id'] }}"><strong>Last Known Location:</strong> 
+                          {% if fleet['last_known_location'] %}
+                            {{ fleet['last_known_location'] }}
+                          {% else %}
+                            <span class="text-muted">Not available</span>
+                          {% endif %}
+                        </p>
+                        <p id="coordinatesText{{ fleet['fleet_id'] }}"><strong>Coordinates:</strong> 
+                          {% if fleet['last_known_lat'] and fleet['last_known_lng'] %}
+                            Lat: {{ "%.6f"|format(fleet['last_known_lat']) }}, Lng: {{ "%.6f"|format(fleet['last_known_lng']) }}
+                          {% else %}
+                            <span class="text-muted">Not available</span>
+                          {% endif %}
+                        </p>
+                      </div>
+                      <div class="col-md-6">
+                        <p><strong>Chassis Number:</strong> {{ fleet['chassis_number'] }}</p>
+                        <p><strong>Cargo Type:</strong> {{ fleet['cargo_type'] }}</p>
+                        <p><strong>Max Capacity:</strong> {{ fleet['max_capacity'] }}</p>
+                        <p><strong>Driver:</strong> 
+                          {% if fleet['employee_id'] and fleet['employee_id'] != '0' and fleet['driver_first_name'] and fleet['driver_last_name'] %}
+                            {{ fleet['driver_first_name'] }} {{ fleet['driver_last_name'] }} (ID: {{ fleet['employee_id'] }})
+                          {% else %}
+                            <span class="text-muted">No Driver Assigned</span>
+                          {% endif %}
+                        </p>
+                        <p><strong>Destination:</strong> {{ fleet['fleet_destination'] or 'N/A' }}</p>
+                        <p><strong>Last Login:</strong> {{ fleet['last_login'] }}</p>
+                        <p><strong>Current Status:</strong> 
+                          <span class="badge bg-{% if fleet['status'] == 'Active' %}success{% elif fleet['status'] == 'In Service' %}success{% elif fleet['status'] == 'Decommissioned' %}danger{% elif fleet['status'] == 'Assigned' %}info{% elif fleet['status'] == 'Idle' %}primary{% elif fleet['status'] == 'Unassigned' %}warning{% else %}secondary{% endif %}">
+                            {{ fleet['status'] }}
+                          </span>
+                        </p>
+                        <!-- NEW: Location Information Section with specific IDs -->
+                        <hr>
+                        <p id="lastUpdatedText{{ fleet['fleet_id'] }}"><strong>Last Updated:</strong> 
+                          {% if fleet['last_location_update'] %}
+                            <!-- Jinja2 filter will be applied if defined in app -->
+                            {{ fleet['last_location_update'] }}
+                          {% else %}
+                            <span class="text-muted">Never</span>
+                          {% endif %}
+                        </p>
+                        <!-- END NEW: Location Information Section -->
+                      </div>
+                    </div>
+                    
+                    <!-- Driver Assignment Form -->
+                     <section class="row">
+                      <div class="col-md-6">
+                        <hr>
+                        <h6>Assign/Update Driver</h6>
+                        <form method="POST">
+                          <input type="hidden" name="fleet_id" value="{{ fleet['fleet_id'] }}">
+                          <input type="hidden" name="action" value="driver">
+                          <div class="mb-3">
+                            <label for="driverSelect{{ fleet['fleet_id'] }}" class="form-label">Assign Driver:</label>
+                            <select class="form-select" id="driverSelect{{ fleet['fleet_id'] }}" name="employee_id">
+                              <option value="0" {% if fleet['employee_id'] == '0' or not fleet['employee_id'] %}selected{% endif %}>-- No Driver --</option>
+                              {% for driver in drivers %}
+                                <option value="{{ driver['employee_id'] }}" 
+                                        {% if driver['employee_id'] == fleet['employee_id'] %}selected{% endif %}>
+                                  {{ driver['first_name'] }} {{ driver['last_name'] }} (ID: {{ driver['employee_id'] }})
+                                </option>
+                              {% endfor %}
+                            </select>
+                            {% if fleet['status'] in ['Decommissioned', 'Active', 'In Service'] %}
+                              <small class="text-muted">Driver assignment disabled for {{ fleet['status'] }} fleets</small>
+                            {% endif %}
+                          </div>
+                          <button type="submit" class="btn btn-primary" 
+                                  {% if fleet['status'] in ['Decommissioned', 'Active', 'In Service'] %}disabled{% endif %}>
+                            {% if fleet['employee_id'] and fleet['employee_id'] != '0' %}Update Driver{% else %}Assign Driver{% endif %}
+                          </button>
+                        </form>
+                      </div>
+                      <div class="col-md-6">
+                        <!-- Status Update Form -->
+                        <hr>
+                        <h6>Update Status</h6>
+                        <form method="POST" onsubmit="return confirmStatusChange(this)">
+                          <input type="hidden" name="fleet_id" value="{{ fleet['fleet_id'] }}">
+                          <input type="hidden" name="action" value="status">
+                          <div class="mb-3">
+                            <label for="statusSelect{{ fleet['fleet_id'] }}" class="form-label">Update Status:</label>
+                            <select class="form-select" id="statusSelect{{ fleet['fleet_id'] }}" name="status">
+                              <option value="Active" {% if fleet['status'] == 'Active' %}selected{% endif %}>Active</option>
+                              <option value="In Service" {% if fleet['status'] == 'In Service' %}selected{% endif %}>In Service</option>
+                              <option value="Decommissioned" {% if fleet['status'] == 'Decommissioned' %}selected{% endif %}>Decommissioned</option>
+                              <option value="Assigned" {% if fleet['status'] == 'Assigned' %}selected{% endif %}>Assigned</option>
+                              <option value="Idle" {% if fleet['status'] == 'Idle' %}selected{% endif %}>Idle</option>
+                              <option value="Unassigned" {% if fleet['status'] == 'Unassigned' %}selected{% endif %}>Unassigned</option>
+                            </select>
+                          </div>
+                          <button type="submit" class="btn btn-success">Update Status</button>
+                        </form>
+                      </div>
+                     </section>
+
+                  </div>
+                  <!-- Updated Modal Footer -->
+                  <div class="modal-footer">
+                    <div>
+                      <button class="btn btn-info me-2">Ping Location</button>
+                      <a href="{{ url_for('editfleet', fleet_id=fleet['fleet_id']) }}" 
+                        class="btn btn-warning me-2" 
+                        {% if fleet['employee_id'] and fleet['employee_id'] != '0' %}disabled title="Cannot edit a fleet with a driver assigned"{% endif %}>
+                        Edit
+                      </a>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                  </div>
+                  <!-- End Updated Modal Footer -->
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        
+        <!-- Improved Pagination Controls -->
+        <nav aria-label="Fleet pagination" class="mt-4">
+          <ul class="pagination justify-content-center" id="paginationControls">
+            <!-- Pagination will be generated by JavaScript -->
+          </ul>
+        </nav>
+        
+        <!-- No results message -->
+        <div id="noResults" class="text-center py-5 d-none">
+          <h5>No fleets found matching your search.</h5>
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <h5>No fleets found{% if current_filter %} with status "{{ current_filter }}"{% endif %}.</h5>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Font Awesome for search icon -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Auto-dismiss flash messages after 3 seconds
+  document.addEventListener('DOMContentLoaded', function() {
+    const flashMessages = document.querySelectorAll('.flash-message');
+    flashMessages.forEach(function(flash) {
+      setTimeout(function() {
+        const alert = bootstrap.Alert.getOrCreateInstance(flash);
+        alert.close();
+      }, 3000);
+    });
+    
+    // Search functionality
+    const searchInput = document.getElementById('fleetSearch');
+    const fleetItems = document.querySelectorAll('.fleet-item');
+    const noResults = document.getElementById('noResults');
+    
+    searchInput.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      let hasResults = false;
+      
+      fleetItems.forEach(item => {
+        const id = item.dataset.id.toLowerCase();
+        const brand = item.dataset.brand.toLowerCase();
+        const model = item.dataset.model.toLowerCase();
+        const category = item.dataset.category.toLowerCase();
+        const status = item.dataset.status.toLowerCase();
+        const cargo = item.dataset.cargo.toLowerCase();
+        
+        if (id.includes(searchTerm) || 
+            brand.includes(searchTerm) || 
+            model.includes(searchTerm) || 
+            category.includes(searchTerm) || 
+            status.includes(searchTerm) ||
+            cargo.includes(searchTerm)) {
+          item.style.display = '';
+          hasResults = true;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      
+      // Show/hide no results message
+      if (hasResults || searchTerm === '') {
+        noResults.classList.add('d-none');
+        initPagination(); // Reinitialize pagination after search
+      } else {
+        noResults.classList.remove('d-none');
+      }
+    });
+    
+    // Pagination functionality
+    const itemsPerPage = 4;
+    let currentPage = 1;
+    let filteredItems = Array.from(fleetItems);
+    
+    function initPagination() {
+      // Get currently visible items
+      filteredItems = Array.from(fleetItems).filter(item => item.style.display !== 'none');
+      
+      // Calculate total pages
+      const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+      
+      // Hide all items
+      fleetItems.forEach(item => item.style.display = 'none');
+      
+      // Show items for current page
+      showPage(currentPage);
+      
+      // Generate pagination controls
+      generatePaginationControls(totalPages);
+    }
+    
+    function showPage(page) {
+      const startIndex = (page - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      
+      // Hide all items
+      filteredItems.forEach(item => item.style.display = 'none');
+      
+      // Show items for current page
+      filteredItems.slice(startIndex, endIndex).forEach(item => item.style.display = '');
+    }
+    
+    function generatePaginationControls(totalPages) {
+      const paginationControls = document.getElementById('paginationControls');
+      paginationControls.innerHTML = '';
+      
+      if (totalPages <= 1) return;
+      
+      // Maximum number of page buttons to show
+      const maxVisiblePages = 3;
+      
+      // Previous button
+      const prevLi = document.createElement('li');
+      prevLi.className = 'page-item' + (currentPage === 1 ? ' disabled' : '');
+      prevLi.innerHTML = `<a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                          </a>`;
+      if (currentPage > 1) {
+        prevLi.querySelector('a').addEventListener('click', function(e) {
+          e.preventDefault();
+          currentPage--;
+          showPage(currentPage);
+          generatePaginationControls(totalPages);
+        });
+      }
+      paginationControls.appendChild(prevLi);
+      
+      // First page button
+      if (totalPages > maxVisiblePages) {
+        const firstLi = document.createElement('li');
+        firstLi.className = 'page-item' + (currentPage === 1 ? ' active' : '');
+        firstLi.innerHTML = `<a class="page-link" href="#">1</a>`;
+        if (currentPage !== 1) {
+          firstLi.querySelector('a').addEventListener('click', function(e) {
+            e.preventDefault();
+            currentPage = 1;
+            showPage(currentPage);
+            generatePaginationControls(totalPages);
+          });
+        }
+        paginationControls.appendChild(firstLi);
+        
+        // Ellipsis if needed
+        if (currentPage > maxVisiblePages) {
+          const ellipsisLi = document.createElement('li');
+          ellipsisLi.className = 'page-item disabled';
+          ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+          paginationControls.appendChild(ellipsisLi);
+        }
+      }
+      
+      // Calculate start and end page numbers
+      let startPage, endPage;
+      if (totalPages <= maxVisiblePages) {
+        // Show all pages
+        startPage = 1;
+        endPage = totalPages;
+      } else {
+        // Calculate start and end pages based on current page
+        const halfVisible = Math.floor(maxVisiblePages / 2);
+        if (currentPage <= halfVisible) {
+          startPage = 1;
+          endPage = maxVisiblePages;
+        } else if (currentPage + halfVisible >= totalPages) {
+          startPage = totalPages - maxVisiblePages + 1;
+          endPage = totalPages;
+        } else {
+          startPage = currentPage - halfVisible;
+          endPage = currentPage + halfVisible;
+        }
+      }
+      
+      // Page numbers
+      for (let i = startPage; i <= endPage; i++) {
+        if (i === 1 && totalPages > maxVisiblePages) continue; // Skip first if already shown
+        if (i === totalPages && totalPages > maxVisiblePages) continue; // Skip last if already shown
+        
+        const li = document.createElement('li');
+        li.className = 'page-item' + (i === currentPage ? ' active' : '');
+        li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+        
+        if (i !== currentPage) {
+          li.querySelector('a').addEventListener('click', function(e) {
+            e.preventDefault();
+            currentPage = i;
+            showPage(currentPage);
+            generatePaginationControls(totalPages);
+          });
+        }
+        
+        paginationControls.appendChild(li);
+      }
+      
+      // Ellipsis and last page button if needed
+      if (totalPages > maxVisiblePages) {
+        // Ellipsis if needed
+        if (currentPage < totalPages - maxVisiblePages + 1) {
+          const ellipsisLi = document.createElement('li');
+          ellipsisLi.className = 'page-item disabled';
+          ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+          paginationControls.appendChild(ellipsisLi);
+        }
+        
+        // Last page button
+        const lastLi = document.createElement('li');
+        lastLi.className = 'page-item' + (currentPage === totalPages ? ' active' : '');
+        lastLi.innerHTML = `<a class="page-link" href="#">${totalPages}</a>`;
+        if (currentPage !== totalPages) {
+          lastLi.querySelector('a').addEventListener('click', function(e) {
+            e.preventDefault();
+            currentPage = totalPages;
+            showPage(currentPage);
+            generatePaginationControls(totalPages);
+          });
+        }
+        paginationControls.appendChild(lastLi);
+      }
+      
+      // Next button
+      const nextLi = document.createElement('li');
+      nextLi.className = 'page-item' + (currentPage === totalPages ? ' disabled' : '');
+      nextLi.innerHTML = `<a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                          </a>`;
+      if (currentPage < totalPages) {
+        nextLi.querySelector('a').addEventListener('click', function(e) {
+          e.preventDefault();
+          currentPage++;
+          showPage(currentPage);
+          generatePaginationControls(totalPages);
+        });
+      }
+      paginationControls.appendChild(nextLi);
+    }
+    
+    // Initialize pagination on page load
+    initPagination();
+  });
+  
+  // Confirmation function for status change
+  function confirmStatusChange(form) {
+    const statusSelect = form.querySelector('select[name="status"]');
+    const selectedStatus = statusSelect.value;
+    
+    if (selectedStatus === 'Decommissioned') {
+      return confirm('Are you sure you want to decommission this fleet? The driver will be automatically unassigned.');
+    }
+    return true;
+  }
+
+  // Function to ping location via AJAX
+  function pingLocation(fleetId) {
+    // Show a loading message or disable the button temporarily
+    const pingButton = document.querySelector(`#fleetModal${fleetId} .btn-info`);
+    const originalText = pingButton.textContent;
+    if (!pingButton) {
+         console.error(`Ping button not found for fleet ID: ${fleetId}`);
+         return;
+    }
+    pingButton.textContent = 'Pinging...';
+    pingButton.disabled = true;
+
+    fetch('/vehiclesmanagefleet', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        // Include your CSRF token here if needed
+        // 'X-CSRF-Token': getCSRFToken()
+      },
+      body: `fleet_id=${encodeURIComponent(fleetId)}&action=ping_location`
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Update the modal footer content
+        const locationSpan = document.querySelector(`#lastKnownLocation${fleetId}`);
+        if (locationSpan) {
+          locationSpan.textContent = `Lat: ${data.lat.toFixed(6)}, Lng: ${data.lng.toFixed(6)}`;
+        } else {
+            console.warn(`Footer location span not found for fleet ID: ${fleetId}`);
+        }
+
+        // Update the modal body content using the specific IDs
+        const locationTextElement = document.getElementById(`locationText${fleetId}`);
+        const coordinatesTextElement = document.getElementById(`coordinatesText${fleetId}`);
+        const lastUpdatedTextElement = document.getElementById(`lastUpdatedText${fleetId}`);
+        // const ipTextElement = document.getElementById(`ipText${fleetId}`); // IP is not updated by the ping function's return data
+
+        if (locationTextElement) {
+            locationTextElement.innerHTML = `<strong>Last Known Location:</strong> ${data.location || '<span class="text-muted">Not available</span>'}`;
+        } else {
+            console.warn(`Location text element not found for fleet ID: ${fleetId}`);
+        }
+        if (coordinatesTextElement) {
+            coordinatesTextElement.innerHTML = `<strong>Coordinates:</strong> Lat: ${data.lat.toFixed(6)}, Lng: ${data.lng.toFixed(6)}`;
+        } else {
+            console.warn(`Coordinates text element not found for fleet ID: ${fleetId}`);
+        }
+        if (lastUpdatedTextElement) {
+            // Use the current client-side time for 'Last Updated'
+            const now = new Date();
+            // Format the date as needed, e.g., locale string
+            const timestampString = now.toLocaleString();
+            lastUpdatedTextElement.innerHTML = `<strong>Last Updated:</strong> ${timestampString}`;
+        } else {
+            console.warn(`Last updated text element not found for fleet ID: ${fleetId}`);
+        }
+        // IP is not returned by the ping function, so we don't update it here unless the server response changes.
+
+        alert(`Location updated successfully!\nLat: ${data.lat.toFixed(6)}, Lng: ${data.lng.toFixed(6)}`);
+      } else {
+        alert(`Error: ${data.message}`);
+      }
+    })
+    .catch(error => {
+      console.error('Error pinging location:', error);
+      alert('An error occurred while pinging the location.');
+    })
+    .finally(() => {
+      // Re-enable the button and restore text
+      if (pingButton) { // Check if button still exists
+          pingButton.textContent = originalText;
+          pingButton.disabled = false;
+      }
+    });
+  }
+
+  // Attach click event to all ping buttons in modals
+  document.addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('btn-info') && e.target.textContent.includes('Ping Location')) {
+      // Find the closest modal to get the fleet ID
+      const modal = e.target.closest('.modal');
+      if (modal) {
+        const modalId = modal.id;
+        // Extract fleet_id from modal ID (e.g., fleetModal1234500000001 -> 1234500000001)
+        const fleetId = modalId.replace('fleetModal', '');
+        if (fleetId) {
+          pingLocation(fleetId);
+        } else {
+          console.error('Could not determine fleet ID from modal ID:', modalId);
+        }
+      }
+    }
+  });
+
+</script>
+
+{% endblock %}

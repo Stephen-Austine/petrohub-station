@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>PetroHub Station</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+  <style>
+    .step {
+      text-align: center;
+      position: relative;
+      flex: 1;
+    }
+    .step .circle {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      margin: auto;
+      background: #ccc;
+      line-height: 30px;
+      color: #fff;
+    }
+    .step.active .circle {
+      background: #28a745;
+    }
+    .step::after {
+      content: '';
+      position: absolute;
+      top: 15px; left: 50%;
+      height: 3px; width: 100%;
+      background: #ccc;
+      z-index: -1;
+    }
+    .step:last-child::after { display: none; }
+    .steps {
+      display: flex;
+      justify-content: space-between;
+      margin: 30px 0;
+    }
+  </style>
+</head>
+<body class="container mt-4">
+
+  <h3 class="fw-bold mb-3">Order #{{ order.id }} Tracking</h3>
+  <p>Customer: <strong>{{ order.customer }}</strong></p>
+
+  <div class="steps">
+    <div class="step" id="step-1">
+      <div class="circle">1</div>
+      <p>Order Placed</p>
+    </div>
+    <div class="step" id="step-2">
+      <div class="circle">2</div>
+      <p>Processing</p>
+    </div>
+    <div class="step" id="step-3">
+      <div class="circle">3</div>
+      <p>Shipped</p>
+    </div>
+    <div class="step" id="step-4">
+      <div class="circle">4</div>
+      <p>Delivered</p>
+    </div>
+  </div>
+
+  <h5>Items</h5>
+  <ul class="list-group mb-3">
+    {% for item in order.items %}
+      <li class="list-group-item d-flex justify-content-between">
+        <span>{{ item.name }} (x{{ item.qty }})</span>
+        <span>KES {{ item.price * item.qty }}</span>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <a href="/shop" class="btn btn-outline-secondary">← Back to Shop</a>
+
+
+  <script>
+    // Steps list
+    const steps = [
+      { id: "step-1", status: "Order Placed" },
+      { id: "step-2", status: "Processing" },
+      { id: "step-3", status: "Shipped" },
+      { id: "step-4", status: "Delivered" }
+    ];
+
+    let currentStep = 0;
+
+    function updateSteps() {
+      steps.forEach((step, index) => {
+        const stepEl = document.getElementById(step.id);
+        if (index <= currentStep) {
+          stepEl.classList.add("active");
+        } else {
+          stepEl.classList.remove("active");
+        }
+      });
+    }
+
+    // Run updates every 3 seconds
+    updateSteps(); // initial
+    const interval = setInterval(() => {
+      if (currentStep < steps.length - 1) {
+        currentStep++;
+        updateSteps();
+      } else {
+        clearInterval(interval); // stop at Delivered
+      }
+    }, 3000);
+  </script>
+
+</body>
+</html>

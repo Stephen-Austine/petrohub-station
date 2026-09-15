@@ -1,0 +1,105 @@
+{% extends "base2.html" %}
+{% block content %}
+<div class="container mt-3">
+
+    <!-- 🔙 Back Button -->
+    <div class="mb-3">
+        <button class="btn btn-success d-flex align-items-center gap-2 rounded-pill shadow-sm px-3" onclick="window.history.back()">
+            <i class="fas fa-arrow-left"></i> Back
+        </button>
+    </div>
+
+    <h2 class="fw-bold text-success">Fleet Services</h2>
+    <p class="text-muted">Request fleet vehicles for your transportation needs. Our system will auto-configure the rental duration and other details.</p>
+
+    <form method="POST">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="vehicle_type" class="form-label fw-semibold text-success">Vehicle Type (Cargo Type)</label>
+                <select name="vehicle_type" id="vehicle_type" class="form-select rounded-3 border-success" required>
+                    <option value="">Select Vehicle Type</option>
+                    <option value="Fuel">Fuel Tanker</option>
+                    <option value="Gas">Gas Delivery Truck</option>
+                    <option value="Oil">Oil Transporter</option>
+                    <option value="Chemicals">Chemical Tanker</option>
+                    <option value="General Cargo">General Cargo Truck</option>
+                    <option value="Trailer">Trailer</option>
+                    <option value="Tanker">Tanker</option>
+                    <option value="Truck">Standard Truck</option>
+                </select>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="quantity" class="form-label fw-semibold text-success">Number of Vehicles</label>
+                <input type="number" name="quantity" id="quantity" class="form-control rounded-3 border-success" min="1" max="100" required>
+                <small class="form-text text-muted">How many vehicles do you need?</small>
+            </div>
+        </div>
+
+        <!-- New: Destination Route -->
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="destination_route" class="form-label fw-semibold text-success">Destination Route *</label>
+                <select name="destination_route" id="destination_route" class="form-select rounded-3 border-success" required>
+                    <option value="">Select Route</option>
+                    <option value="Nairobi - Mombasa">Nairobi - Mombasa</option>
+                    <option value="Nairobi - Kisumu">Nairobi - Kisumu</option>
+                    <option value="Kisumu - Luanda">Kisumu - Luanda</option>
+                    <option value="Luanda - Busia">Luanda - Busia</option>
+                    <option value="Nairobi - Eldoret">Nairobi - Eldoret</option>
+                    <option value="Nairobi - Nakuru">Nairobi - Nakuru</option>
+                </select>
+            </div>
+
+            <!-- New: Destination Town -->
+            <div class="col-md-6 mb-3">
+                <label for="destination_town" class="form-label fw-semibold text-success">Destination Town *</label>
+                <select name="destination_town" id="destination_town" class="form-select rounded-3 border-success" required>
+                    <option value="">Select Town</option>
+                    <option value="Sega">Sega</option>
+                    <option value="Kapsabet">Kapsabet</option>
+                    <option value="Busia">Busia</option>
+                    <option value="Kisumu">Kisumu</option>
+                    <option value="Eldoret">Eldoret</option>
+                    <option value="Nakuru">Nakuru</option>
+                    <option value="Thika">Thika</option>
+                    <option value="Ruiru">Ruiru</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- New: Additional Instructions -->
+        <div class="mb-3">
+            <label for="additional_instructions" class="form-label fw-semibold text-success">Additional Instructions</label>
+            <textarea name="additional_instructions" id="additional_instructions" class="form-control rounded-3 border-success" rows="3" placeholder="e.g., Nyota Ndogo Fuelling Station opposite Guardian Angel booking station Stendi Kisa"></textarea>
+        </div>
+
+        <!-- Hidden field to combine route and town for backend (optional, if needed) -->
+        <!-- <input type="hidden" name="destination_combined" id="destination_combined"> -->
+        
+        <div class="card bg-white border-0 shadow-sm mb-3 rounded-4">
+            <div class="card-body">
+                <h6 class="text-success fw-bold">Auto-configured Details:</h6>
+                <ul class="mb-0 text-secondary">
+                    <li><strong>Duration:</strong> 10 days</li>
+                    <li><strong>Start Date:</strong> Today</li>
+                    <li><strong>Expected Return:</strong> 10 days from today</li>
+                    <li><strong>Instructions:</strong> Same as destination</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-3">
+            <button type="submit" class="btn btn-success rounded-pill px-4">
+                <i class="fas fa-paper-plane"></i> Submit Fleet Request
+            </button>
+            <a href="{{ url_for('fleet.fleet_orders') }}" class="btn btn-secondary rounded-pill px-4">
+                <i class="fas fa-list"></i> View My Orders
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

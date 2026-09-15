@@ -1,0 +1,51 @@
+{% extends "base2.html" %}
+{% block content %}
+<div class="container">
+    <h2>My Bulk Orders</h2>
+    
+    {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Cost</th>
+                        <th>Delivery Address</th>
+                        <th>Status</th>
+                        <th>Ordered On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>#{{ order.bulkorder_id }}</td>
+                        <td>{{ order.product_type }}</td>
+                        <td>{{ order.product_category }}</td>
+                        <td>{{ order.quantity_requested }}</td>
+                        <td>KES {{ order.total_cost }}</td>
+                        <td>{{ order.delivery_address }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if order.status == 'Delivered' %}bg-success
+                                {% elif order.status == 'In Transit' %}bg-info
+                                {% elif order.status == 'Confirmed' %}bg-warning
+                                {% else %}bg-secondary{% endif %}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td>{{ order.order_timestamp|datetime }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>You have no bulk orders yet.</p>
+    {% endif %}
+    
+    <a href="{{ url_for('bulkgoods') }}" class="btn btn-primary">Place New Bulk Order</a>
+</div>
+{% endblock %}

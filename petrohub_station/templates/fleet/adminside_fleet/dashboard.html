@@ -1,0 +1,387 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-fluid dashboard-container">
+    <!-- Dashboard Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 dashboard-title">Dashboard</h1>
+        <div class="text-end">
+            <span class="badge bg-success fs-6 shadow-sm">Welcome, {{ current_user.first_name }}!</span>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card glass-card p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-xs text-uppercase mb-1">Product Deliveries</div>
+                        <div class="h5 mb-0">{{ stats.total_product_orders or 0 }}</div>
+                    </div>
+                    <i class="fas fa-box fa-2x text-success opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card glass-card p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-xs text-uppercase mb-1">Gas Refill Orders</div>
+                        <div class="h5 mb-0">{{ stats.total_gas_orders or 0 }}</div>
+                    </div>
+                    <i class="fas fa-fire fa-2x text-success opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card glass-card p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-xs text-uppercase mb-1">Fleet Assignments</div>
+                        <div class="h5 mb-0">{{ stats.total_fleet_assignments or 0 }}</div>
+                    </div>
+                    <i class="fas fa-truck fa-2x text-success opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card glass-card p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-xs text-uppercase mb-1">Completed Tasks</div>
+                        <div class="h5 mb-0">{{ stats.completed_orders or 0 }}</div>
+                    </div>
+                    <i class="fas fa-check-circle fa-2x text-success opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assigned Fleets Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card shadow-sm mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold">My Assigned Vehicles</h6>
+                </div>
+                <div class="card-body">
+                    {% if assigned_fleets %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Registration</th>
+                                    <th>Brand/Model</th>
+                                    <th>Category</th>
+                                    <th>Cargo Type</th>
+                                    <th>Capacity</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for fleet in assigned_fleets %}
+                                <tr>
+                                    <td>{{ fleet.registration_number }}</td>
+                                    <td>{{ fleet.fleet_brand }} {{ fleet.fleet_model }}</td>
+                                    <td>{{ fleet.fleet_category }}</td>
+                                    <td>{{ fleet.cargo_type }}</td>
+                                    <td>{{ fleet.max_capacity }} kg</td>
+                                    <td>
+                                        <span class="badge {% if fleet.status == 'Active' %}bg-success{% else %}bg-warning{% endif %}">
+                                            {{ fleet.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No vehicles assigned to you currently.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Delivery Orders -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card shadow-sm mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold">Product Delivery Tasks</h6>
+                </div>
+                <div class="card-body">
+                    {% if product_orders %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Product</th>
+                                    <th>Customer</th>
+                                    <th>Destination</th>
+                                    <th>Status</th>
+                                    <th>Order Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in product_orders %}
+                                <tr>
+                                    <td>#{{ order.order_id }}</td>
+                                    <td>{{ order.product_name }}</td>
+                                    <td>{{ order.customer_first }} {{ order.customer_last }}</td>
+                                    <td>{{ order.customer_location }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if order.status == 'Completed' %}bg-success
+                                            {% elif order.status == 'Stage 2' %}bg-warning
+                                            {% else %}bg-info{% endif %}">
+                                            {{ order.status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ order.order_timestamp|datetime }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No product delivery tasks assigned.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gas Refill Orders -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card shadow-sm mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold">Gas Refill Tasks</h6>
+                </div>
+                <div class="card-body">
+                    {% if gas_orders %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Cylinder Type</th>
+                                    <th>Size</th>
+                                    <th>Customer</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in gas_orders %}
+                                <tr>
+                                    <td>#{{ order.order_id }}</td>
+                                    <td>{{ order.cylinder_type }}</td>
+                                    <td>{{ order.size_kg }}</td>
+                                    <td>{{ order.customer_first }} {{ order.customer_last }}</td>
+                                    <td>{{ order.location }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if order.status == 'Delivered' %}bg-success
+                                            {% elif order.status == 'In Transit' %}bg-warning
+                                            {% else %}bg-info{% endif %}">
+                                            {{ order.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No gas refill tasks assigned.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fleet Rental Assignments -->
+    <div class="row">
+        <div class="col-12">
+            <div class="glass-card shadow-sm mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold">Fleet Rental Assignments</h6>
+                </div>
+                <div class="card-body">
+                    {% if fleet_rental_orders %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Vehicle</th>
+                                    <th>Cargo Type</th>
+                                    <th>Customer</th>
+                                    <th>Duration</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in fleet_rental_orders %}
+                                <tr>
+                                    <td>#{{ order.fleetorder_id }}</td>
+                                    <td>{{ order.registration_number }}</td>
+                                    <td>{{ order.cargo_type }}</td>
+                                    <td>{{ order.customer_first }} {{ order.customer_last }}</td>
+                                    <td>{{ order.duration_days }} days</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if order.assignment_status == 'Returned' %}bg-success
+                                            {% else %}bg-primary{% endif %}">
+                                            {{ order.assignment_status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No fleet rental assignments.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Glossy White Glassmorphism Styles -->
+<style>
+  .dashboard-container {
+    padding: 20px;
+    animation: fadeIn 0.4s ease-in-out;
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.55);
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Glossy white reflection effect */
+  .glass-card::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      120deg,
+      rgba(255, 255, 255, 0.35) 0%,
+      rgba(255, 255, 255, 0.05) 60%,
+      transparent 100%
+    );
+    transform: rotate(25deg);
+    pointer-events: none;
+  }
+
+  .glass-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  }
+
+  .card-header {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(240, 255, 240, 0.6));
+    border-bottom: 1px solid rgba(22, 163, 74, 0.2);
+    color: #14532d;
+    font-weight: 600;
+  }
+
+  .dashboard-title {
+    color: #065f46;
+    font-weight: 700;
+  }
+
+  .stat-card {
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 1rem;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.7), rgba(245, 255, 245, 0.5));
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Gloss reflection for stat cards */
+  .stat-card::before {
+    content: "";
+    position: absolute;
+    top: -40%;
+    left: -60%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(120deg, rgba(255,255,255,0.4) 0%, transparent 60%);
+    transform: rotate(25deg);
+    pointer-events: none;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 25px rgba(0, 128, 0, 0.15);
+  }
+
+  .table {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 0.8rem;
+  }
+
+  .table th {
+    background: rgba(240, 255, 240, 0.85);
+    color: #14532d;
+    font-weight: 600;
+  }
+
+  .table td {
+    color: #1b4332;
+  }
+
+  .badge {
+    border-radius: 1rem;
+    padding: 0.45em 0.8em;
+    font-weight: 600;
+    box-shadow: inset 0 0 3px rgba(255, 255, 255, 0.3);
+  }
+
+  .badge.bg-success {
+    background-color: rgba(22, 163, 74, 0.85) !important;
+  }
+
+  .badge.bg-warning {
+    background-color: rgba(250, 204, 21, 0.85) !important;
+    color: #14532d;
+  }
+
+  .badge.bg-info {
+    background-color: rgba(59, 130, 246, 0.75) !important;
+  }
+
+  .badge.bg-primary {
+    background-color: rgba(13, 148, 136, 0.85) !important;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+{% endblock %}

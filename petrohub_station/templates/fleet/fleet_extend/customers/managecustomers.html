@@ -1,0 +1,387 @@
+{% extends "adminside_fleet/adminlayout.html" %}
+
+{% block content %}
+
+<div class="container">
+  <h3>Manage Customers</h3>
+  
+  <!-- Search Bar -->
+  <div class="row mb-3">
+    <div class="col-md-12">
+      <div class="input-group">
+        <span class="input-group-text" id="search-icon">
+          <i class="fas fa-search"></i>
+        </span>
+        <input type="text" class="form-control" id="customerSearch" placeholder="Search by ID, Name, Email, or Status..." aria-label="Search customers" aria-describedby="search-icon">
+      </div>
+    </div>
+  </div>
+  
+  <!-- Status Navbar -->
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+      <a class="nav-link {% if not current_filter %}active{% endif %}" href="{{ url_for('customersmanage') }}">
+        All Customers 
+        <span class="badge bg-success">{{ total_customers }}</span>
+      </a>
+    </li>
+    {% for status_row in status_counts %}
+      <li class="nav-item">
+        <a class="nav-link {% if current_filter == status_row['status'] %}active{% endif %}" 
+           href="{{ url_for('customersmanage', status=status_row['status']) }}" style="color: green;">
+          {{ status_row['status'] }} <span class="badge bg-secondary">{{ status_row['count'] }}</span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show flash-message" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="card">
+    <div class="card-body">
+      {% if customers %}
+        <div id="customerList">
+          {% for customer in customers %}
+            <div class="card mt-2 customer-item" 
+                 data-id="{{ customer['user_id'] }}" 
+                 data-name="{{ customer['first_name'] }} {{ customer['last_name'] }}" 
+                 data-email="{{ customer['email'] }}" 
+                 data-status="{{ customer['status'] }}">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="row w-100">
+                    <!-- Customer Info Columns -->
+                    <div class="col-md-2">
+                      <p class="mb-1"><strong>ID:</strong> {{ customer['user_id'] }}</p>
+                      <p class="mb-1"><strong>Name:</strong> {{ customer['first_name'] }} {{ customer['last_name'] }}</p>
+                    </div>
+                    <div class="col-md-3">
+                      <p class="mb-1"><strong>Email:</strong> {{ customer['email'] }}</p>
+                      <p class="mb-1"><strong>Phone:</strong> {{ customer['phone_number'] }}</p>
+                    </div>
+                    <div class="col-md-3">
+                      <p class="mb-1"><strong>Location:</strong> {{ customer['location'] }}</p>
+                      <p class="mb-1"><strong>Last Login:</strong> {{ customer['last_login'] }}</p>
+                    </div>
+                    <div class="col-md-2">
+                      <p class="mb-1"><strong>Status:</strong></p>
+                      <span class="badge bg-{% if customer['status'] == 'Active' %}success{% elif customer['status'] == 'Inactive' %}secondary{% else %}danger{% endif %}">
+                        {{ customer['status'] }}
+                      </span>
+                    </div>
+                    <div class="col-md-2 text-end">
+                      <!-- More Info Button -->
+                      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#customerModal{{ customer['user_id'] }}">
+                        More Info
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Customer Modal -->
+            <div class="modal fade" id="customerModal{{ customer['user_id'] }}" tabindex="-1" aria-labelledby="customerModalLabel{{ customer['user_id'] }}" aria-hidden="true">
+              <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="customerModalLabel{{ customer['user_id'] }}">Customer Details - ID: {{ customer['user_id'] }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <p><strong>Customer ID:</strong> {{ customer['user_id'] }}</p>
+                        <p><strong>First Name:</strong> {{ customer['first_name'] }}</p>
+                        <p><strong>Last Name:</strong> {{ customer['last_name'] }}</p>
+                        <p><strong>Email:</strong> {{ customer['email'] }}</p>
+                        <p><strong>Phone Number:</strong> {{ customer['phone_number'] }}</p>
+                        <p><strong>Location:</strong> {{ customer['location'] }}</p>
+                      </div>
+                      <div class="col-md-6">
+                        <p><strong>Status:</strong> 
+                          <span class="badge bg-{% if customer['status'] == 'Active' %}success{% elif customer['status'] == 'Inactive' %}secondary{% else %}danger{% endif %}">
+                            {{ customer['status'] }}
+                          </span>
+                        </p>
+                        <p><strong>Last Login:</strong> {{ customer['last_login'] }}</p>
+                        <p><strong>OTP:</strong> {{ customer['otp'] or 'None' }}</p>
+                        <p><strong>OTP Timestamp:</strong> {{ customer['otp_timestamp'] or 'N/A' }}</p>
+                        
+                        <!-- Status Change Form -->
+                        <hr>
+                        <form method="POST">
+                          <input type="hidden" name="user_id" value="{{ customer['user_id'] }}">
+                          <div class="mb-3">
+                            <label for="statusSelect{{ customer['user_id'] }}" class="form-label"><strong>Change Status:</strong></label>
+                            <select class="form-select" id="statusSelect{{ customer['user_id'] }}" name="status">
+                              <option value="Active" {% if customer['status'] == 'Active' %}selected{% endif %}>Active</option>
+                              <option value="Inactive" {% if customer['status'] == 'Inactive' %}selected{% endif %}>Inactive</option>
+                            </select>
+                          </div>
+                          <button type="submit" class="btn btn-success">Update Status</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        
+        <!-- Improved Pagination Controls -->
+        <nav aria-label="Customer pagination" class="mt-4">
+          <ul class="pagination justify-content-center" id="paginationControls">
+            <!-- Pagination will be generated by JavaScript -->
+          </ul>
+        </nav>
+        
+        <!-- No results message -->
+        <div id="noResults" class="text-center py-5 d-none">
+          <h5>No customers found matching your search.</h5>
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <h5>No customers found{% if current_filter %} with status "{{ current_filter }}"{% endif %}.</h5>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Font Awesome for search icon -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Auto-dismiss flash messages after 3 seconds
+  document.addEventListener('DOMContentLoaded', function() {
+    const flashMessages = document.querySelectorAll('.flash-message');
+    flashMessages.forEach(function(flash) {
+      setTimeout(function() {
+        const alert = bootstrap.Alert.getOrCreateInstance(flash);
+        alert.close();
+      }, 3000);
+    });
+    
+    // Search functionality
+    const searchInput = document.getElementById('customerSearch');
+    const customerItems = document.querySelectorAll('.customer-item');
+    const noResults = document.getElementById('noResults');
+    
+    searchInput.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      let hasResults = false;
+      
+      customerItems.forEach(item => {
+        const id = item.dataset.id.toLowerCase();
+        const name = item.dataset.name.toLowerCase();
+        const email = item.dataset.email.toLowerCase();
+        const status = item.dataset.status.toLowerCase();
+        
+        if (id.includes(searchTerm) || 
+            name.includes(searchTerm) || 
+            email.includes(searchTerm) || 
+            status.includes(searchTerm)) {
+          item.style.display = '';
+          hasResults = true;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      
+      // Show/hide no results message
+      if (hasResults || searchTerm === '') {
+        noResults.classList.add('d-none');
+        initPagination(); // Reinitialize pagination after search
+      } else {
+        noResults.classList.remove('d-none');
+      }
+    });
+    
+    // Pagination functionality
+    const itemsPerPage = 4;
+    let currentPage = 1;
+    let filteredItems = Array.from(customerItems);
+    
+    function initPagination() {
+      // Get currently visible items
+      filteredItems = Array.from(customerItems).filter(item => item.style.display !== 'none');
+      
+      // Calculate total pages
+      const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+      
+      // Hide all items
+      customerItems.forEach(item => item.style.display = 'none');
+      
+      // Show items for current page
+      showPage(currentPage);
+      
+      // Generate pagination controls
+      generatePaginationControls(totalPages);
+    }
+    
+    function showPage(page) {
+      const startIndex = (page - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      
+      // Hide all items
+      filteredItems.forEach(item => item.style.display = 'none');
+      
+      // Show items for current page
+      filteredItems.slice(startIndex, endIndex).forEach(item => item.style.display = '');
+    }
+    
+    function generatePaginationControls(totalPages) {
+      const paginationControls = document.getElementById('paginationControls');
+      paginationControls.innerHTML = '';
+      
+      if (totalPages <= 1) return;
+      
+      // Maximum number of page buttons to show
+      const maxVisiblePages = 3;
+      
+      // Previous button
+      const prevLi = document.createElement('li');
+      prevLi.className = 'page-item' + (currentPage === 1 ? ' disabled' : '');
+      prevLi.innerHTML = `<a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                          </a>`;
+      if (currentPage > 1) {
+        prevLi.querySelector('a').addEventListener('click', function(e) {
+          e.preventDefault();
+          currentPage--;
+          showPage(currentPage);
+          generatePaginationControls(totalPages);
+        });
+      }
+      paginationControls.appendChild(prevLi);
+      
+      // First page button
+      if (totalPages > maxVisiblePages) {
+        const firstLi = document.createElement('li');
+        firstLi.className = 'page-item' + (currentPage === 1 ? ' active' : '');
+        firstLi.innerHTML = `<a class="page-link" href="#">1</a>`;
+        if (currentPage !== 1) {
+          firstLi.querySelector('a').addEventListener('click', function(e) {
+            e.preventDefault();
+            currentPage = 1;
+            showPage(currentPage);
+            generatePaginationControls(totalPages);
+          });
+        }
+        paginationControls.appendChild(firstLi);
+        
+        // Ellipsis if needed
+        if (currentPage > maxVisiblePages) {
+          const ellipsisLi = document.createElement('li');
+          ellipsisLi.className = 'page-item disabled';
+          ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+          paginationControls.appendChild(ellipsisLi);
+        }
+      }
+      
+      // Calculate start and end page numbers
+      let startPage, endPage;
+      if (totalPages <= maxVisiblePages) {
+        // Show all pages
+        startPage = 1;
+        endPage = totalPages;
+      } else {
+        // Calculate start and end pages based on current page
+        const halfVisible = Math.floor(maxVisiblePages / 2);
+        if (currentPage <= halfVisible) {
+          startPage = 1;
+          endPage = maxVisiblePages;
+        } else if (currentPage + halfVisible >= totalPages) {
+          startPage = totalPages - maxVisiblePages + 1;
+          endPage = totalPages;
+        } else {
+          startPage = currentPage - halfVisible;
+          endPage = currentPage + halfVisible;
+        }
+      }
+      
+      // Page numbers
+      for (let i = startPage; i <= endPage; i++) {
+        if (i === 1 && totalPages > maxVisiblePages) continue; // Skip first if already shown
+        if (i === totalPages && totalPages > maxVisiblePages) continue; // Skip last if already shown
+        
+        const li = document.createElement('li');
+        li.className = 'page-item' + (i === currentPage ? ' active' : '');
+        li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+        
+        if (i !== currentPage) {
+          li.querySelector('a').addEventListener('click', function(e) {
+            e.preventDefault();
+            currentPage = i;
+            showPage(currentPage);
+            generatePaginationControls(totalPages);
+          });
+        }
+        
+        paginationControls.appendChild(li);
+      }
+      
+      // Ellipsis and last page button if needed
+      if (totalPages > maxVisiblePages) {
+        // Ellipsis if needed
+        if (currentPage < totalPages - maxVisiblePages + 1) {
+          const ellipsisLi = document.createElement('li');
+          ellipsisLi.className = 'page-item disabled';
+          ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+          paginationControls.appendChild(ellipsisLi);
+        }
+        
+        // Last page button
+        const lastLi = document.createElement('li');
+        lastLi.className = 'page-item' + (currentPage === totalPages ? ' active' : '');
+        lastLi.innerHTML = `<a class="page-link" href="#">${totalPages}</a>`;
+        if (currentPage !== totalPages) {
+          lastLi.querySelector('a').addEventListener('click', function(e) {
+            e.preventDefault();
+            currentPage = totalPages;
+            showPage(currentPage);
+            generatePaginationControls(totalPages);
+          });
+        }
+        paginationControls.appendChild(lastLi);
+      }
+      
+      // Next button
+      const nextLi = document.createElement('li');
+      nextLi.className = 'page-item' + (currentPage === totalPages ? ' disabled' : '');
+      nextLi.innerHTML = `<a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                          </a>`;
+      if (currentPage < totalPages) {
+        nextLi.querySelector('a').addEventListener('click', function(e) {
+          e.preventDefault();
+          currentPage++;
+          showPage(currentPage);
+          generatePaginationControls(totalPages);
+        });
+      }
+      paginationControls.appendChild(nextLi);
+    }
+    
+    // Initialize pagination on page load
+    initPagination();
+  });
+</script>
+
+{% endblock %}

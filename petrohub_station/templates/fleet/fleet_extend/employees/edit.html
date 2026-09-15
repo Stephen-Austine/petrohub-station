@@ -1,0 +1,191 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<style>
+  /* === Glassmorphism + Green Theme === */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .glass-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 128, 0, 0.15);
+  }
+
+  /* Input styles */
+  .form-input {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(0, 128, 0, 0.2);
+    background: rgba(255, 255, 255, 0.6);
+    color: #1b4332;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.3);
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  /* Label */
+  label {
+    color: #14532d;
+    font-weight: 500;
+  }
+
+  /* Buttons */
+  .btn-green {
+    background-color: #16a34a;
+    color: white;
+    border: none;
+    border-radius: 9999px; /* Full rounded button */
+    padding: 0.5rem 1.2rem;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+  }
+
+  .btn-green:hover {
+    background-color: #15803d;
+    transform: scale(1.05);
+  }
+
+  .btn-gray {
+    background-color: #94a3b8;
+    color: white;
+    border: none;
+    border-radius: 9999px;
+    padding: 0.5rem 1.2rem;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+  }
+
+  .btn-gray:hover {
+    background-color: #64748b;
+    transform: scale(1.05);
+  }
+
+  /* Back link */
+  .back-link {
+    color: #16a34a;
+    transition: color 0.2s ease;
+  }
+
+  .back-link:hover {
+    color: #15803d;
+    text-decoration: underline;
+  }
+
+  /* Container animation */
+  .fade-in {
+    animation: fadeIn 0.5s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<div class="container mx-auto p-6 max-w-2xl fade-in">
+  <!-- Glass Card Wrapper -->
+  <div class="glass-card p-6 rounded-2xl shadow-md">
+    <h3 class="text-2xl font-bold text-green-700 mb-6 flex items-center gap-2">
+      <i class="bi bi-person-fill-gear text-green-600"></i>
+      Edit Employee
+    </h3>
+
+    <form method="POST">
+      <!-- First Name -->
+      <div class="mb-4">
+        <label class="block text-sm mb-1.5">First Name</label>
+        <input 
+          type="text" 
+          name="first_name" 
+          class="form-input"
+          value="{{ emp['fname'] }}" 
+          required
+        >
+      </div>
+
+      <!-- Last Name -->
+      <div class="mb-4">
+        <label class="block text-sm mb-1.5">Last Name</label>
+        <input 
+          type="text" 
+          name="last_name" 
+          class="form-input"
+          value="{{ emp['lname'] }}" 
+          required
+        >
+      </div>
+
+      <!-- Role -->
+      <div class="mb-4">
+        <label class="block text-sm mb-1.5">Role</label>
+        <input 
+          type="text" 
+          name="role" 
+          class="form-input"
+          value="{{ emp['role'] }}" 
+          required
+        >
+      </div>
+
+      <!-- Email -->
+      <div class="mb-4">
+        <label class="block text-sm mb-1.5">Email</label>
+        <input 
+          type="email" 
+          name="email" 
+          class="form-input"
+          value="{{ emp['email'] }}" 
+          required
+        >
+      </div>
+
+      <!-- Phone Number -->
+      <div class="mb-5">
+        <label class="block text-sm mb-1.5">Phone Number (Optional)</label>
+        <input 
+          type="text" 
+          name="phone_number" 
+          class="form-input"
+          value="{{ emp['phone_number'] }}"
+        >
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="btn-green font-medium">
+          <i class="bi bi-save"></i> Update
+        </button>
+        <a href="{{ url_for('employees.employees_home') }}" class="btn-gray font-medium">
+          <i class="bi bi-x-circle"></i> Cancel
+        </a>
+      </div>
+    </form>
+
+    <!-- Back Link -->
+    <div class="text-center mt-6">
+      <a href="{{ url_for('employees.employees_home') }}" class="back-link text-sm font-medium">
+        ← Back to Employee List
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
