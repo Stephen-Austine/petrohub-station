@@ -15,6 +15,20 @@ This system is designed to cover multiple operational areas:
 - Employee authentication and role-based access
 - Bulk order management across operational departments
 
+## Screenshots
+
+### Shop and Product Management
+
+![PetroHub Station shop catalog and invoice](<Screenshot%202026-11-19%20at%2011.49.27.png>)
+
+### Fleet Request
+
+![PetroHub Station fleet service request](<Screenshot%202026-11-19%20at%2011.47.56.png>)
+
+### Fleet Administration
+
+![PetroHub Station fleet management dashboard](<Screenshot%202026-11-19%20at%2011.47.29.png>)
+
 ## Features
 
 ### Customer-facing features
